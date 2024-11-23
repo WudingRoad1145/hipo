@@ -305,99 +305,106 @@ class BackgroundAnalyzer {
     }
 
     parseAnalysis(response) {
-        try {
-            // Get the content from response
-            let content;
-            if (response.content) {
-                content = response.content;
-            } else if (response.messages && response.messages[0]) {
-                content = response.messages[0].content;
-            } else {
-                throw new Error('Unexpected response format');
-            }
-    
-            if (typeof content !== 'string') {
-                console.error('Unexpected content type:', typeof content, content);
-                throw new Error('Content is not a string');
-            }
-    
-            return {
-                polarizationScore: this.extractPolarizationScore(content),
-                summary: this.extractSection(content, 'Main viewpoint summary'),
-                biases: this.extractListSection(content, 'Detected biases', 3),
-                missingPerspectives: this.extractListSection(content, 'Missing perspectives', 3),
-                alternativeViewpoints: this.extractLinkSection(content, 'Alternative viewpoints')
-            };
-        } catch (error) {
-            console.error('Failed to parse LLM response:', error);
-            console.log('Raw response:', response);
-            throw new Error(`Invalid response format from LLM: ${error.message}`);
-        }
-    }
+      console.log('Starting to parse response:', response);
+      try {
+          // Extract text content from the new Claude response format
+          let content;
+          if (response?.content && Array.isArray(response.content)) {
+              // Get the text from the first content item
+              content = response.content.find(item => item.type === 'text')?.text;
+          }
+  
+          if (!content) {
+              console.error('Could not find text content in response:', response);
+              throw new Error('Invalid response structure from Claude');
+          }
+  
+          console.log('Extracted content for parsing:', content);
+  
+          return {
+              polarizationScore: this.extractPolarizationScore(content),
+              summary: this.extractSection(content, 'Main viewpoint summary'),
+              biases: this.extractListSection(content, 'Detected biases', 3),
+              missingPerspectives: this.extractListSection(content, 'Missing perspectives', 3),
+              alternativeViewpoints: this.extractLinkSection(content, 'Alternative viewpoints')
+          };
+      } catch (error) {
+          console.error('Failed to parse LLM response:', error);
+          console.log('Raw response for debugging:', response);
+          throw error;
+      }
+  }
 
     // Base extractor - used by other methods
     extractSection(content, sectionName) {
-        try {
-            // This regex finds content between section headers
-            const regex = new RegExp(`${sectionName}:?([^\\n]*(?:\\n(?!\\w+:)[^\\n]*)*)`, 'i');
-            const match = content.match(regex);
-            const extracted = match ? match[1].trim() : '';
-            console.log(`Extracted ${sectionName}:`, extracted);
-            return extracted;
-        } catch (error) {
-            console.error(`Failed to extract section ${sectionName}:`, error);
-            return '';
-        }
-    }
+      try {
+          if (!content) return '';
+          const regex = new RegExp(`${sectionName}:?([^\\n]*(?:\\n(?!\\w+:)[^\\n]*)*)`, 'i');
+          const match = content.match(regex);
+          return match ? match[1].trim() : '';
+      } catch (error) {
+          console.error(`Failed to extract section ${sectionName}:`, error);
+          return '';
+      }
+  }
 
     extractPolarizationScore(content) {
-        try {
-            const match = content.match(/Polarization score:\s*(\d+)/i);
-            return match ? Math.min(100, Math.max(0, parseInt(match[1]))) : 50;
-        } catch (error) {
-            console.error('Failed to extract polarization score:', error);
-            return 50; // default score
-        }
-    }
+      try {
+          if (!content) return 50;
+          const match = content.match(/Polarization score:\s*(\d+)/i);
+          return match ? Math.min(100, Math.max(0, parseInt(match[1]))) : 50;
+      } catch (error) {
+          console.error('Failed to extract polarization score:', error);
+          return 50; // default score
+      }
+  }
     
     extractListSection(content, sectionName, maxItems = 3) {
-        try {
-            const section = this.extractSection(content, sectionName);
-            return section
-                .split(/\n/)
-                .map(item => item.replace(/^[-*•]\s*/, '').trim())
-                .filter(Boolean)
-                .slice(0, maxItems);
-        } catch (error) {
-            console.error(`Failed to extract ${sectionName}:`, error);
-            return [];
-        }
-    }
+      try {
+          const section = this.extractSection(content, sectionName);
+          return section
+              .split(/\n/)
+              .map(item => item.replace(/^[-*•]\s*/, '').trim())
+              .filter(Boolean)
+              .slice(0, maxItems);
+      } catch (error) {
+          console.error(`Failed to extract ${sectionName}:`, error);
+          return [];
+      }
+  }
 
-    extractLinkSection(content, sectionName) {
-        try {
-            const section = this.extractSection(content, sectionName);
-            return section
-                .split(/\n/)
-                .map(item => {
-                    const matches = item.match(/\[(.*?)\]\((.*?)\)/);
-                    if (matches) {
-                        return {
-                            title: matches[1],
-                            url: matches[2]
-                        };
-                    }
+  extractLinkSection(content, sectionName) {
+    try {
+        const section = this.extractSection(content, 'Alternative viewpoints');
+        if (!section) return [];
+
+        return section
+            .split(/\n/)
+            .map(item => {
+                const markdownMatch = item.match(/\[(.*?)\]\((.*?)\)(.*)$/);
+                if (markdownMatch) {
                     return {
-                        title: item.replace(/^[-*•]\s*/, '').trim(),
-                        url: '#'
+                        title: markdownMatch[1].trim(),
+                        url: markdownMatch[2].trim(),
+                        description: markdownMatch[3].replace(/^[- ]*/, '').trim()
                     };
-                })
-                .slice(0, 3);
-        } catch (error) {
-            console.error('Failed to extract links:', error);
-            return [];
-        }
+                }
+                
+                // Fallback for non-markdown format
+                const title = item.replace(/^[-*•]\s*/, '').trim();
+                return {
+                    title,
+                    url: '#',
+                    description: ''
+                };
+            })
+            .filter(link => link.title) // Remove empty entries
+            .slice(0, 3);
+    } catch (error) {
+        console.error('Failed to extract links:', error);
+        return [];
     }
+}
 
     cleanupCache() {
         const MAX_CACHE_SIZE = 100;
