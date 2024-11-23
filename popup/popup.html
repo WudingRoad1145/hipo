@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="hipo-container">
+    <header>
+      <h1>Hipo</h1>
+      <p id="status">Analyzing content...</p>
+    </header>
+
+    <div id="warning-card" class="warning-card hidden">
+      <div class="warning-header">
+        <h3>Extremely Skewed Views Warning</h3>
+        <span class="warning-icon">⚠️</span>
+      </div>
+      <p>Here are some opposing views you might want to consider</p>
+      <div id="alternatives" class="alternatives"></div>
+    </div>
+    
+    <div class="opinion-section">
+      <h4>How Polarized You Think?</h4>
+      <p class="subtitle">Make it your own! Drag the slider and add your labels ✏️</p>
+      
+      <div class="slider-container">
+        <div class="slider-track"></div>
+        <input 
+          type="range" 
+          id="polarization-meter" 
+          min="0" 
+          max="100" 
+          value="50"
+        >
+      </div>
+      
+      <div class="label-inputs">
+        <input 
+          type="text" 
+          id="left-label" 
+          placeholder="Left label ✍️"
+          class="label-input"
+        >
+        <input 
+          type="text" 
+          id="right-label" 
+          placeholder="Right label ✍️"
+          class="label-input"
+        >
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button id="report-btn" class="button outline">
+        Report 🚨
+      </button>
+      <button id="submit-btn" class="button primary">
+        Submit ✨
+      </button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

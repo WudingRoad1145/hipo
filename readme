@@ -1,0 +1,255 @@
+# Hipo - Hidden Polarization Detector
+
+## Purpose
+Hipo (Hidden Polarization) is a lightweight browser extension designed to help users identify and understand potential polarization in their daily online reading. By proactively analyzing web content and providing immediate feedback, Hipo aims to:
+
+1. Reveal hidden biases and polarized viewpoints in online content
+2. Present alternative perspectives to broaden understanding
+3. Engage users in reflecting on content polarization
+4. Collect anonymous feedback to improve polarization detection
+
+## Key Features
+- 🚀 Lightweight and performant
+- 🔄 Proactive content analysis
+- 📊 User feedback collection
+- 🔍 Dynamic content support
+- 🎯 Platform-specific content detection
+- 💡 Alternative viewpoint suggestions
+
+## Technical Implementation
+
+### Directory Structure
+```
+hipo-extension/
+│
+├── manifest.json          # Extension configuration
+├── background/
+│   └── background.js      # Background service worker
+├── content/
+│   ├── content.js         # Content analysis
+│   └── dynamicContent.js  # Dynamic content handler
+├── popup/
+│   ├── popup.html         # UI
+│   ├── popup.js           # UI logic
+│   └── styles.css         # Styling
+├── settings/
+│   ├── settings.html      # Store API Keys in Chrome Storage UI
+│   ├── settings.js        # API Key storage logic
+└── utils/
+    └── analytics.js       # Analytics helper
+```
+
+### Core Design Principles
+
+#### 1. Lightweight Implementation
+- No heavy frameworks - pure JavaScript
+- Minimal dependencies
+- Efficient DOM operations
+- Small bundle size
+- Quick initial load time
+- Modular code structure
+
+```javascript
+// Example of efficient content extraction
+class ContentExtractor {
+  static getMainContent() {
+    const selectors = [
+      'article',
+      '[role="main"]',
+      'main',
+      '.main-content'
+    ];
+    
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) return element.textContent;
+    }
+    return this.extractWithReadability();
+  }
+}
+```
+
+#### 2. Proactive Analysis
+- Automatic content analysis on page load
+- Background processing
+- Visual status indicators
+- Cache results for instant popup access
+- SPA navigation support
+
+```javascript
+// Background service worker
+chrome.webNavigation.onCompleted.addListener(async ({ tabId, frameId }) => {
+  if (frameId === 0) {  // Main frame only
+    await initializeAnalysis(tabId);
+  }
+});
+```
+
+#### 3. User Feedback Collection
+- Anonymous feedback collection
+- Local storage backup
+- Aggregate analytics
+- Performance tracking
+- User-defined polarization labels
+
+```javascript
+// Feedback storage
+class FeedbackAnalytics {
+  static async storeFeedback(feedback) {
+    // Store locally first
+    await this.storeLocalFeedback(feedback);
+    
+    // Then send to analytics server
+    await this.sendToAnalyticsServer(feedback);
+  }
+}
+```
+
+#### 4. Dynamic Content Support
+- MutationObserver for content changes
+- Platform-specific extractors
+- Throttled analysis
+- Efficient updates
+- Social media support
+
+```javascript
+// Dynamic content handler
+class DynamicContentAnalyzer {
+  constructor() {
+    this.observer = new MutationObserver(
+      this.throttle(this.handleMutations.bind(this), 2000)
+    );
+  }
+}
+```
+
+## Setup & Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/hipo-extension.git
+```
+
+2. Install dependencies (if any):
+```bash
+cd hipo-extension
+npm install
+```
+
+3. Load in Chrome:
+   - Open Chrome Extensions (chrome://extensions/)
+   - Enable Developer Mode
+   - Click "Load unpacked"
+   - Select the `hipo-extension` directory
+   - Find Hipo extension
+   - Click "Options"
+   - Enter your Claude API key
+   - Save settings
+
+## Configuration
+
+### API Key
+Never commit API keys or sensitive credentials. Use the settings page to configure your API key in your local chrome storage.
+
+### Permissions
+The extension requires the following permissions:
+```json
+{
+  "permissions": [
+    "activeTab",
+    "storage",
+    "webNavigation",
+    "tabs"
+  ]
+}
+```
+
+## Development
+
+### Building
+```bash
+npm run build
+```
+
+### Testing
+```bash
+npm test
+```
+
+### Local Development
+1. Make changes to source files
+2. Reload the extension in Chrome
+3. Test on various websites
+
+## Technical Assumptions
+
+1. **Content Analysis**
+   - Main content is available in the DOM
+   - Content follows common HTML patterns
+   - Text is the primary analysis target
+
+2. **Performance**
+   - Analysis should complete within 500ms
+   - UI updates should be under 100ms
+   - Storage operations are asynchronous
+
+3. **Platform Support**
+   - Modern browsers (Chrome-based)
+   - HTML5 features available
+   - ES6+ JavaScript support
+
+4. **User Privacy**
+   - Anonymous data collection
+   - Local storage fallback
+   - No personal data transmitted
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. Commit your changes
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+4. Push to the branch
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. Open a Pull Request
+
+## Future Improvements
+
+1. **Analysis**
+   - More platforms support
+   - Enhanced content extraction
+   - Machine learning integration
+
+2. **UI/UX**
+   - Customizable themes
+   - More interactive features
+   - Accessibility improvements
+
+3. **Performance**
+   - Worker thread analysis
+   - Improved caching
+   - Better memory management
+
+4. **Analytics**
+   - Enhanced metrics
+   - Real-time analysis
+   - Trend detection
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+- Built with inspiration from various content analysis tools
+- Thanks to the open-source community for various tools and libraries
+- Special thanks to contributors and early adopters
+
+---
+
+For more information, bug reports, or feature requests, please visit the [GitHub repository](https://github.com/your-username/hipo-extension).
