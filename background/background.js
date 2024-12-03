@@ -320,10 +320,9 @@ class BackgroundAnalyzer {
           }
   
           console.log('Extracted content for parsing:', content);
-  
           return {
               polarizationScore: this.extractPolarizationScore(content),
-              summary: this.extractSection(content, 'Main viewpoint summary'),
+              summary: this.extractSummary(content, 'Main viewpoint summary'),
               biases: this.extractListSection(content, 'Detected biases', 3),
               missingPerspectives: this.extractListSection(content, 'Missing perspectives', 3),
               alternativeViewpoints: this.extractLinkSection(content, 'Alternative viewpoints')
@@ -333,20 +332,34 @@ class BackgroundAnalyzer {
           console.log('Raw response for debugging:', response);
           throw error;
       }
-  }
+    }
 
     // Base extractor - used by other methods
     extractSection(content, sectionName) {
       try {
           if (!content) return '';
-          const regex = new RegExp(`${sectionName}:?([^\\n]*(?:\\n(?!\\w+:)[^\\n]*)*)`, 'i');
+          // Modify the regex to stop capturing at the start of the next section
+          const regex = new RegExp(`${sectionName}:\\s*([^\\n]*(?:\\n(?![A-Z][a-z]+\\s?:)[^\\n]*)*)`, 'i');
           const match = content.match(regex);
           return match ? match[1].trim() : '';
       } catch (error) {
           console.error(`Failed to extract section ${sectionName}:`, error);
           return '';
       }
-  }
+    }
+
+    extractSummary(content, sectionName) {
+      try {
+        if (!content) return '';
+        // Match the section name and capture the first sentence after it
+        const regex = new RegExp(`${sectionName}:\\s*([^\\n.]*\\.)`, 'i');
+        const match = content.match(regex);
+        return match ? match[1].trim() : '';
+      } catch (error) {
+          console.error(`Failed to extract section ${sectionName}:`, error);
+          return '';
+      }
+    }
 
     extractPolarizationScore(content) {
       try {
@@ -357,7 +370,7 @@ class BackgroundAnalyzer {
           console.error('Failed to extract polarization score:', error);
           return 50; // default score
       }
-  }
+    }
     
     extractListSection(content, sectionName, maxItems = 3) {
       try {
@@ -371,40 +384,40 @@ class BackgroundAnalyzer {
           console.error(`Failed to extract ${sectionName}:`, error);
           return [];
       }
-  }
-
-  extractLinkSection(content, sectionName) {
-    try {
-        const section = this.extractSection(content, 'Alternative viewpoints');
-        if (!section) return [];
-
-        return section
-            .split(/\n/)
-            .map(item => {
-                const markdownMatch = item.match(/\[(.*?)\]\((.*?)\)(.*)$/);
-                if (markdownMatch) {
-                    return {
-                        title: markdownMatch[1].trim(),
-                        url: markdownMatch[2].trim(),
-                        description: markdownMatch[3].replace(/^[- ]*/, '').trim()
-                    };
-                }
-                
-                // Fallback for non-markdown format
-                const title = item.replace(/^[-*•]\s*/, '').trim();
-                return {
-                    title,
-                    url: '#',
-                    description: ''
-                };
-            })
-            .filter(link => link.title) // Remove empty entries
-            .slice(0, 3);
-    } catch (error) {
-        console.error('Failed to extract links:', error);
-        return [];
     }
-}
+
+    extractLinkSection(content, sectionName) {
+      try {
+          const section = this.extractSection(content, 'Alternative viewpoints');
+          if (!section) return [];
+
+          return section
+              .split(/\n/)
+              .map(item => {
+                  const markdownMatch = item.match(/\[(.*?)\]\((.*?)\)(.*)$/);
+                  if (markdownMatch) {
+                      return {
+                          title: markdownMatch[1].trim(),
+                          url: markdownMatch[2].trim(),
+                          description: markdownMatch[3].replace(/^[- ]*/, '').trim()
+                      };
+                  }
+                  
+                  // Fallback for non-markdown format
+                  const title = item.replace(/^[-*•]\s*/, '').trim();
+                  return {
+                      title,
+                      url: '#',
+                      description: ''
+                  };
+              })
+              .filter(link => link.title) // Remove empty entries
+              .slice(0, 3);
+      } catch (error) {
+          console.error('Failed to extract links:', error);
+          return [];
+      }
+    }
 
     cleanupCache() {
         const MAX_CACHE_SIZE = 100;

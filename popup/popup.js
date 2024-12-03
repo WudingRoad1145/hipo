@@ -17,7 +17,7 @@ class HipoUI {
         },
         moderate: {
           range: [61, 80],
-          title: 'Slightly Biased Views',
+          title: 'Notably Biased Views',
           message: 'This content shows notable bias. Here are some alternative viewpoints:',
           color: '#FF9800', // Orange
           icon: '⚡'
@@ -36,20 +36,34 @@ class HipoUI {
         this.initializeElements();
         this.bindEvents();
         this.initializeUI();
+        document.querySelector('.hipo-container').classList.remove('analysis-complete');
     }
     
     initializeElements() {
         console.log('Setting up UI elements');
         this.elements = {
+            title: document.getElementById('title'),
+            status: document.getElementById('status'), 
+            scoreValue: document.getElementById('score-value'),
+            scoreIndicator: document.getElementById('score-indicator'),
+            summary: document.getElementById('summary'),
+            biasesList: document.getElementById('biases-list'),
+            perspectivesList: document.getElementById('perspectives-list'),
+            warningCard: document.getElementById('warning-card'),
+            warningTitle: document.getElementById('warning-title'),
+            warningIcon: document.getElementById('warning-icon'),
+            alternatives: document.getElementById('alternatives'),
             polarizationMeter: document.getElementById('polarization-meter'),
             leftLabel: document.getElementById('left-label'),
             rightLabel: document.getElementById('right-label'),
             submitBtn: document.getElementById('submit-btn'),
-            reportBtn: document.getElementById('report-btn'),
-            warningCard: document.getElementById('warning-card'),
-            status: document.getElementById('status'),
-            alternatives: document.getElementById('alternatives')
+            reportBtn: document.getElementById('report-btn')
         };
+        Object.entries(this.elements).forEach(([key, element]) => {
+            if (!element) {
+                console.error(`Failed to find element: ${key}`);
+            }
+        });
 
         // Verify all elements are found
         Object.entries(this.elements).forEach(([key, element]) => {
@@ -81,6 +95,9 @@ class HipoUI {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             console.log('Current tab:', tab);
+            if (this.elements.title) {
+                this.elements.title.textContent = tab.title;
+            }
 
             if (!tab) {
                 throw new Error('No active tab found');
@@ -124,7 +141,7 @@ class HipoUI {
             }
         } catch (error) {
             console.error('Analysis request failed:', error);
-            this.updateStatus('Analysis failed. Please try again.');
+            this.updateStatus('Analyzing... Please open popup when a green check appears on Hipo icon!');
         }
     }
 
@@ -151,24 +168,86 @@ class HipoUI {
     updateUIWithAnalysis(analysis) {
         console.log('Updating UI with analysis:', analysis);
         const { level, config } = this.getPolarizationLevel(analysis.polarizationScore);
-        
-        // Update warning card
-        if (this.elements.warningCard) {
-          this.elements.warningCard.classList.remove('hidden');
-          this.elements.warningCard.style.borderColor = config.color;
+        document.querySelector('.hipo-container').classList.add('analysis-complete');
+
+        // Update score display
+        if (this.elements.scoreValue) {
+            this.elements.scoreValue.textContent = `${analysis.polarizationScore}%`;
+            this.elements.scoreValue.style.backgroundColor = `${config.color}20`;
+            this.elements.scoreValue.style.color = config.color;
         }
-        
+        if (this.elements.scoreIndicator) {
+            this.elements.scoreIndicator.style.width = `${analysis.polarizationScore}%`;
+            this.elements.scoreIndicator.style.backgroundColor = config.color;
+        }
+
+        // Update summary
+        if (analysis.summary && this.elements.summary) {
+            this.elements.summary.textContent = analysis.summary;
+        }
+        console.log('Analysis:', analysis);
+        console.log('Analysis:', analysis.summary);
+        // Detected biases
+        if (analysis.biases?.length && this.elements.biasesList) {
+            this.elements.biasesList.innerHTML = analysis.biases
+                .map(bias => `<li>${bias}</li>`)
+                .join('');
+        }
+        console.log('Analysis:', analysis.biases);
+        // Missing perspectives
+        if (analysis.missingPerspectives?.length && this.elements.perspectivesList) {
+            this.elements.perspectivesList.innerHTML = analysis.missingPerspectives
+                .map(perspective => `<li>${perspective}</li>`)
+                .join('');
+        }
+        console.log('Analysis:', analysis.missingPerspectives);
+        // Update warning card and title
+        if (this.elements.warningCard) {
+            this.elements.warningCard.classList.remove('hidden');
+            if (this.elements.warningTitle) {
+                this.elements.warningTitle.textContent = config.title;
+            }
+        }
+
+        // Update warning message
+        if (this.elements.warningText) {
+            this.elements.warningText.textContent = config.message;
+        }
+
+        // Update warning icon
+        if (this.elements.warningIcon) {
+            this.elements.warningIcon.textContent = config.icon;
+        }
+
         // Update status
         this.updateStatus('Analysis complete');
-        
-        // Update slider
-        this.updateSlider(analysis.polarizationScore, config.color);
-        
-        // Update alternatives if score indicates bias
-        if (analysis.polarizationScore > 30 && analysis.alternativeViewpoints) {
+
+        // hide status after analysis
+        document.querySelector('.hipo-container').classList.add('completed');
+
+        // Always update alternatives
+        if (this.elements.alternatives && analysis.alternativeViewpoints) {
             this.updateAlternatives(analysis.alternativeViewpoints);
-          }
         }
+        
+        // Reset user input slider to middle
+        if (this.elements.polarizationMeter) {
+            this.elements.polarizationMeter.value = 50;
+        }
+    }
+
+    getScoreDisplay(score) {
+        // Match thresholds with POLARIZATION_LEVELS
+        if (score <= 30) {
+            return { color: '#4CAF50', label: 'Balanced' };
+        } else if (score <= 60) {
+            return { color: '#FFC107', label: 'Potentially Biased' };
+        } else if (score <= 80) {
+            return { color: '#FF9800', label: 'Notably Biased' };
+        } else {
+            return { color: '#F44336', label: 'Extremely Biased' };
+        }
+    }
 
     updateSlider(value, color) {
         console.log('Updating slider:', { value, color });

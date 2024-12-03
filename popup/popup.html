@@ -7,18 +7,44 @@
 <body>
   <div class="hipo-container">
     <header>
-      <h1>Hipo</h1>
-      <p id="status">Analyzing content...</p>
+      <h1 id="title"></h1>
     </header>
-
-    <div id="warning-card" class="warning-card hidden">
-      <div class="warning-header">
-        <h3>Extremely Skewed Views Warning</h3>
-        <span class="warning-icon">⚠️</span>
-      </div>
-      <p>Here are some opposing views you might want to consider</p>
-      <div id="alternatives" class="alternatives"></div>
+    <div id="analysis-header" class="analysis-header">
+      <p id="status" class="status">Analyzing contents...</p>
+      <span class="warning-icon">⚠️</span>
     </div>
+
+    <div class="content-section">
+        <div class="score-section">
+            <h3>Polarization Level</h3>
+            <div class="score-display">
+                <div class="score-bar">
+                    <div id="score-indicator" class="score-indicator"></div>
+                </div>
+                <span id="score-value" class="score-value"></span>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <p><strong>Summary: </strong><span id="summary"></span></p>
+        </div>
+
+        <div class="bias-section">
+            <p><strong>Detected biases:</strong></p>
+            <ul id="biases-list" class="info-list"></ul>
+        </div>
+
+        <div class="perspectives-section">
+            <p><strong>Missing perspectives:</strong></p>
+            <ul id="perspectives-list" class="info-list"></ul>
+        </div>
+    </div>
+
+    <div id="warning-card" class="warning-card">
+        <h3>Alternative viewpoints to consider</h3>
+        <div id="alternatives" class="alternatives"></div>
+    </div>
+
     
     <div class="opinion-section">
       <h4>How Polarized You Think?</h4>

@@ -4,6 +4,9 @@
   --purple-light: #E6E1FF;
   --shadow: rgba(0, 0, 0, 0.1);
 }
+.header {
+  margin-bottom: 4px;
+}
 
 .hipo-container {
   width: 300px;
@@ -12,11 +15,9 @@
 }
 
 .warning-card {
-  background: var(--warning-bg);
+  background: #FFFBE6;
   padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  transition: transform 0.3s ease;
+  border-radius: 8px;
 }
 
 .warning-card:hover {
@@ -40,6 +41,7 @@
   padding: 16px;
   border-radius: 12px;
   border: 2px solid var(--purple-light);
+  margin-bottom: 16px;
   margin-bottom: 16px;
 }
 
@@ -177,4 +179,113 @@ pre, code {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+
+.analysis-section {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #E6E1FF;
+}
+
+.content-section {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.score-section {
+  margin-bottom: 16px;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-bar {
+  flex-grow: 1;
+  height: 4px;
+  background: #E6E1FF;
+  border-radius: 2px;
+}
+
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.status {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.score-value {
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.score-bar {
+  height: 4px;
+  background: #E6E1FF;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.score-indicator {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.summary {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.score-info {
+  margin-top: 8px;
+  font-weight: 500;
+  color: #666;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.info-list li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+  padding-left: 16px;
+  position: relative;
+}
+
+.info-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+}
+
+.completed .status,
+.completed .warning-icon {
+    display: none;
+}
+
+.content-section, .warning-card {
+  display: none;
+  margin-bottom: 20px;
+}
+
+.analysis-complete .content-section,
+.analysis-complete .warning-card {
+  display: block;
 }
